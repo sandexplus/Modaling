@@ -24,15 +24,19 @@ All the parameters are includes by default but you can change some of them just 
 + default: `false`
 + rules: `the parameter must contain a boolean. If it's true standard styles for all elements will be added by default. It's a good way if you want to build the modal faster`
 **!! attention !!** 
-    + you can set standard styles for certain elements if you send an object with the elements you need
+    + you can set standard styles for certain elements if you send an object with the strings of elements you need 
+    + Allowed strings:
+        + `modal` - the whole modal block
+        + `overlay` - overlay of the modal
+        + `open` - the opener element
+        + `close` - the closer element
+        + `activeClass` - include the modal show class
 
 `keys`
 + default: `['Escape']`
 + rules: `the parameter must contain an array with "key" or "code" properties`
 
 #### Elements
-
-Every key you send can be as an array contains query selectors of elements 
 
 `modal`
 + default: `.js-modal`
@@ -49,7 +53,7 @@ Every key you send can be as an array contains query selectors of elements
     + do not send modal overlay selector as `closeClass`. It has it's own parameter
 
 `overlay`
-+ default: `js-overlay`
++ default: `.js-overlay`
 + rules: `the parameter must contain a string with an modal overlay class`
 
 #### Styles
@@ -72,7 +76,7 @@ Every key you send can be as an array contains query selectors of elements
 
 #### Callbacks
 
-You can send the parameters `openCallback` and `closeCallback`. Each of them is an object containing two keys `before` and `after`. `before` runs before the modal opens, `after` - after. Read more in the Examples section
+You can send the parameters `initCallback`. It is an object containing two keys `before` and `after`. `before` runs before the modal initialize, `after` - after. Read more in the Examples section
 
 ### Methods
 
@@ -100,12 +104,6 @@ if you send a callback as a parameter and listen for exactly the same event, the
 
 `.on()`
 + init event listener. Takes two parameters: listener and callback
-
-`'beforeinit'`
-+ triggers before the modal has been initialized
-
-`'afterinit'`
-+ triggers after the modal has been initialized
 
 `'beforedestroy'`
 + triggers before the modal has been destroyed
@@ -136,20 +134,12 @@ const modal = new Modaling({
     scrollLockClass: 'overflow-hidden', // this will be ignored because scrollLocking parameter is sended
     scrollLocking: false,
     modal: ['.alert-modal', '.another-modal'], // you can send an array of selectors
-    openCallback: {
+    initCallback: {
         before: function() {
-            alert('modal is starting to open')
+            alert('modal is started init')
         }
         after: function() {
-            alert('modal opened')
-        }
-    },
-    closeCallback: {
-        before: function() {
-            alert('modal is starting to close')
-        }
-        after: function() {
-            alert('modal closed')
+            alert('modal inited')
         }
     }
 })

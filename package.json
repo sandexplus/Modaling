@@ -4,11 +4,11 @@
   "description": "Modaling is a simple and lightweight implementation of pop-ups, written in pure JavaScript and does not contain external dependencies",
   "main": "Modaling.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\""
   },
   "repository": {
     "type": "git",
-    "url": "#"
+    "url": "https://github.com/sandexplus/Modaling.git"
   },
   "keywords": [
     "modal",

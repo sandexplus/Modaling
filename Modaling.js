@@ -15,21 +15,62 @@ export default class Modaling {
             modal: '.js-modal',
             opener: '.js-open',
             closer: '.js-close',
-            overlay: 'js-overlay',
+            overlay: '.js-overlay',
 
             //styles
             activeClass: 'modal_show',
             scrollLockClass: null,
 
             //callbacks
-            openCallback: null,
-            closeCallback: null,
+            initCallback: null,
         }
 
         this.config = Object.assign(defaultConfig, params)
+        this.standardStyles = {
+            modal: {
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                pointerEvents: 'none',
+                transition: '.3s all'
+            },
+            overlay: {
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0,0,0,.5)'
+            },
+            close: {
+                position: 'absolute',
+                right: '15px',
+                top: '15px',
+                padding: '8px 20px',
+                borderRadius: '5px',
+                display: 'flex',
+                maxWidth: '200px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: 'pointer',
+                border: '1px solid #000'
+            },
+            activeClass: {
+                opacity: 1,
+                pointerEvents: 'all'
+            },
+            open: {
+                padding: '8px 20px',
+                borderRadius: '5px',
+                display: 'flex',
+                maxWidth: '200px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: 'pointer',
+                border: '1px solid #000'
+            }
+        }
 
-        this.beforeinit = null
-        this.afterinit = null
         this.beforedestroy = null
         this.afterdestroy = null
         this.openstart = null
@@ -41,7 +82,7 @@ export default class Modaling {
     }
 
     #init() {
-        if (this.beforeinit) this.beforeinit()
+        if (this.config?.initCallback?.before) this.config.initCallback.before()
 
         // Properties
         this.isOpened = false;
@@ -49,17 +90,46 @@ export default class Modaling {
         // this.openedPopup = false;
         this.#overlayChecker = false;
 
-
+        if (this.config.standardStyles) this.#setStandardStyles()
         this.#eventsFeeler();
 
 
-        if (this.afterinit) this.afterinit()
+        if (this.config?.initCallback?.after) this.config.initCallback.after()
+    }
+
+    #setStandardStyles() {
+        let selectors = {
+            modal: this.config.modal,
+            overlay: this.config.overlay,
+            open: this.config.opener,
+            close: this.config.closer,
+            activeClass: this.config.activeClass
+        }
+        if (this.config.standardStyles === true) {
+            for (let key in selectors) {
+                const el = document.querySelector(selectors[key])
+                if (el) {
+                    for (let styleKey in this.standardStyles[key]) {
+                        el.style[styleKey] = this.standardStyles[key][styleKey]
+                    }
+                }
+                
+            }
+        } else if (Array.isArray(this.config.standardStyles)) {
+            this.config.standardStyles.forEach(key => {
+                const el = document.querySelector(selectors[key])
+                if (el) {
+                    console.log(this.standardStyles[key]);
+                    for (let styleKey in this.standardStyles[key]) {
+                        el.style[styleKey] = this.standardStyles[key][styleKey]
+                    }
+                }
+            })
+        }
     }
 
     on(listener, callback) {
         if (!callback || typeof callback !== 'function') return
-        if (listener === 'beforeinit') {this.beforeinit = callback; this.hasEventListeners = true}
-        if (listener === 'afterinit') {this.afterinit = callback; this.hasEventListeners = true}
         if (listener === 'beforedestroy') {this.beforedestroy = callback; this.hasEventListeners = true}
         if (listener === 'afterdestroy') {this.afterdestroy = callback; this.hasEventListeners = true}
         if (listener === 'openstart') {this.openstart = callback; this.hasEventListeners = true}
@@ -85,6 +155,7 @@ export default class Modaling {
     }
 
     #keyDown(e) {
+        if (!Array.isArray(this.config.keys)) return
         if ((this.config.keys.includes(e.key) || this.config.keys.includes(e.code)) && this.isOpened) {
             e.preventDefault();
             this.close();
@@ -93,12 +164,12 @@ export default class Modaling {
     }
 
     #mouseDown(e) {
-        if (!e.target.classList.contains(this.config.overlay)) return;
+        if (e.target !== document.querySelector(this.config.overlay)) return;
         this.#overlayChecker = true;
     }
 
     #mouseUp(e) {
-        if (this.#overlayChecker && e.target.classList.contains(this.config.overlay)) {
+        if (this.#overlayChecker && e.target === document.querySelector(this.config.overlay)) {
             e.preventDefault();
             !this.#overlayChecker;
             this.close();
@@ -146,6 +217,11 @@ export default class Modaling {
 
         this.openedPopup.classList.add(this.config.activeClass);
         this.openedPopup.setAttribute('aria-hidden', 'false');
+        if (this.standardStyles?.activeClass) {
+            for (let styleKey in this.standardStyles.activeClass) {
+                this.openedPopup.style[styleKey] = this.standardStyles.activeClass[styleKey]
+            }
+        }
 
         this.isOpened = true;
         this.#bodyScrollControl();
@@ -166,6 +242,16 @@ export default class Modaling {
 
         this.openedPopup.classList.remove(this.config.activeClass);
         this.openedPopup.setAttribute('aria-hidden', 'true');
+
+        if (this.standardStyles?.activeClass) {
+            for (let styleKey in this.standardStyles.activeClass) {
+                if (+this.standardStyles.activeClass[styleKey]) {
+                    this.openedPopup.style[styleKey] = 0
+                } else {
+                    this.openedPopup.style[styleKey] = 'none'
+                }
+            }
+        }
 
         this.isOpened = false;
         this.#bodyScrollControl();
