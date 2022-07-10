@@ -1,6 +1,6 @@
 # Modaling
 
-Modaling is a simple and lightweight implementation of pop-ups, written in pure JavaScript and does not contain external dependencies
+Modaling is a simple and lightweight implementation of pop-ups, written in TypeScript and does not contain external dependencies
 
 ## Installation
 

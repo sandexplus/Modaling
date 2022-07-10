@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "removeComments": true,
+        "outDir": "js",
+        "sourceMap": true,
+        "declaration": true,
+        "noEmitOnError": true,
+        "alwaysStrict": true,
+        "checkJs": true,
+        "downlevelIteration": true,
+        "outFile": "Modaling.js",
+        "strictNullChecks": true,
+        "lib": [
+            "es2015",
+            "es2017",
+            "esnext",
+            "dom"
+        ]
+    },
+    "files": [
+        "./ts/Modaling.ts"
+    ]
+}
