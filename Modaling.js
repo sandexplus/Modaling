@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Modaling = (function () {
     function Modaling(params) {
         this._defaultConfig = {
@@ -88,9 +89,6 @@ var Modaling = (function () {
         if (typeof ((_b = (_a = this._config) === null || _a === void 0 ? void 0 : _a.initCallback) === null || _b === void 0 ? void 0 : _b.before) === 'function')
             this._config.initCallback.before();
         for (var prop in this._config) {
-            if (!this._config[prop]) {
-                throw new Error("Can not get ".concat(prop, " value. Check out your commit"));
-            }
             if (prop === 'modal' || prop === 'opener' || prop === 'closer' || prop === 'overlay' || prop === 'modalContainer') {
                 if (!document.querySelector(this._config[prop])) {
                     throw new Error("There is no element with '".concat(this._config[prop], "' selector"));
@@ -336,4 +334,5 @@ var Modaling = (function () {
     };
     return Modaling;
 }());
+exports.default = Modaling;
 //# sourceMappingURL=Modaling.js.map

@@ -38,7 +38,7 @@ type conf = {
     // destroyCallback: null
 }
 
-class Modaling {
+export default class Modaling {
     public isOpened : boolean
     public hasEventListeners : boolean
     public openedPopup : HTMLElement | boolean
@@ -160,9 +160,9 @@ class Modaling {
         if (typeof this._config?.initCallback?.before === 'function') this._config.initCallback.before()
 
         for (let prop in this._config) {
-            if (!this._config[prop]) {
-                throw new Error(`Can not get ${prop} value. Check out your commit`);
-            }
+            // if (!this._config[prop]) {
+            //     throw new Error(`Can not get ${prop} value. Check out your commit`);
+            // }
             if (prop === 'modal' || prop === 'opener' || prop === 'closer' || prop === 'overlay' || prop === 'modalContainer') {
                 if (!document.querySelector(this._config[prop]!)) {
                     throw new Error(`There is no element with '${this._config[prop]}' selector`);

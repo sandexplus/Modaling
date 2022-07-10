@@ -2,14 +2,16 @@
     "compilerOptions": {
         "target": "ES5",
         "removeComments": true,
-        "outDir": "js",
+        "outDir": "./",
         "sourceMap": true,
         "declaration": true,
         "noEmitOnError": true,
         "alwaysStrict": true,
         "checkJs": true,
+        "module": "CommonJS",
         "downlevelIteration": true,
-        "outFile": "Modaling.js",
+        // "outFile": "Modaling.js",
+        "esModuleInterop": true,
         "strictNullChecks": true,
         "lib": [
             "es2015",

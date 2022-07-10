@@ -1,35 +1,4 @@
-declare type conf = {
-    standardStyles?: boolean;
-    scrollLocking?: boolean;
-    keys?: string[];
-    keyClose?: boolean;
-    openByMethod?: boolean;
-    closeByMethod?: boolean;
-    autoInit?: boolean;
-    autoOpen?: boolean | number;
-    autoClose?: boolean | number;
-    modal?: string;
-    opener?: string;
-    closer?: string;
-    overlay?: string;
-    modalContainer: string;
-    activeClass?: string;
-    scrollLockClass?: string;
-    enablePadding?: boolean;
-    initCallback?: null | {
-        before?: Function;
-        after?: Function;
-    };
-    openCallback?: null | {
-        before?: Function;
-        after?: Function;
-    };
-    closeCallback?: null | {
-        before?: Function;
-        after?: Function;
-    };
-};
-declare class Modaling {
+export default class Modaling {
     isOpened: boolean;
     hasEventListeners: boolean;
     openedPopup: HTMLElement | boolean;

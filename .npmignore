@@ -1,4 +1,6 @@
 *.html
 *.css
 tsconfig.json
-*.ts
+node_modules
+gulpfile.js
+js
