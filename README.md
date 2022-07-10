@@ -19,8 +19,8 @@ Add this HTML on your page
 ```html
 <div class="js-modal"> <!-- whole modal container -->
     <div class="js-overlay"> <!-- overlay --> 
-        <div class="modal-container"> !-- modal content --> 
-            <button class="js-close"></button> !-- close button -->/ 
+        <div class="modal-container"> <!-- modal content --> 
+            <button class="js-close"></button> <!-- close button -->/
         </div>
     </div>
 </div>
