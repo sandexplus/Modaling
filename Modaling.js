@@ -1,8 +1,13 @@
 export default class Modaling {
-    #modalBlock
-    #nextPopup
-    #scrollPosition
     #overlayChecker
+    #beforedestroy
+    #afterdestroy 
+    #openstart 
+    #openend 
+    #closestart 
+    #closeend 
+    #config
+    #resize
 
     constructor(params) {
         let defaultConfig = {
@@ -10,22 +15,34 @@ export default class Modaling {
             standardStyles: false,
             scrollLocking: true,
             keys: ['Escape'],
+            keyClose: true,
+            openByMethod: false,
+            closeByMethod: false,
+            autoInit: true,
+            autoOpen: false,
+            autoClose: false,
 
             //elems
             modal: '.js-modal',
             opener: '.js-open',
             closer: '.js-close',
             overlay: '.js-overlay',
+            modalContainer: '.modal-container',
 
             //styles
             activeClass: 'modal_show',
             scrollLockClass: null,
+            enablePadding: true,
 
             //callbacks
             initCallback: null,
+            openCallback: null,
+            closeCallback: null,
+            // destroyCallback: null
         }
 
-        this.config = Object.assign(defaultConfig, params)
+        this.#config = Object.assign(defaultConfig, params)
+        if (!document.querySelector(this.#config.modal)) return
         this.standardStyles = {
             modal: {
                 position: 'fixed',
@@ -36,6 +53,10 @@ export default class Modaling {
                 opacity: 0,
                 pointerEvents: 'none',
                 transition: '.3s all'
+            },
+            modalContainer: {
+                maxHeight: '100vh',
+                overflowY: 'auto'
             },
             overlay: {
                 width: '100%',
@@ -71,41 +92,104 @@ export default class Modaling {
             }
         }
 
-        this.beforedestroy = null
-        this.afterdestroy = null
-        this.openstart = null
-        this.openend = null
-        this.closestart = null
-        this.closeend = null
+        // this.#beforedestroy = null
+        // this.#afterdestroy = null
+        this.#openstart = null
+        this.#openend = null
+        this.#closestart = null
+        this.#closeend = null
+        this.#resize = null
 
-        this.#init()
+        
+        if (this.#config.autoInit) this.#init()
     }
 
+    // Private
+
     #init() {
-        if (this.config?.initCallback?.before) this.config.initCallback.before()
+        if (typeof this.#config?.initCallback?.before === 'function') this.#config.initCallback.before()
 
         // Properties
         this.isOpened = false;
         this.hasEventListeners = false;
-        // this.openedPopup = false;
+        this.openedPopup = false;
+        this.isOverflow = this.#checkOverflow()
+
         this.#overlayChecker = false;
 
-        if (this.config.standardStyles) this.#setStandardStyles()
+        if (this.#config.standardStyles) this.#setStandardStyles()
         this.#eventsFeeler();
 
+        if (+this.#config.autoOpen) {
+            setTimeout(() => {
+                this.open()
+            }, this.#config.autoOpen)
+        }
+        if (+this.#config.autoClose) {
+            setTimeout(() => {
+                this.close()
+            }, this.#config.autoClose)
+        }
 
-        if (this.config?.initCallback?.after) this.config.initCallback.after()
+
+        if (typeof this.#config?.initCallback?.after === 'function') this.#config.initCallback.after()
+    }
+
+    #documentClick(e) {
+        const clickedLink = e.target.closest(this.#config.opener);
+        if (!this.isOpened && !this.#config.openByMethod) {
+            if (clickedLink) { 
+                e.preventDefault();
+                this.open();
+                return;
+            }
+        } 
+        if (!this.#config.closeByMethod) {
+            if (e.target.closest(this.#config.closer)) {
+                this.close();
+                return;
+            }
+        }
+    }
+
+    #keyDown(e) {
+        if (!Array.isArray(this.#config.keys) || !this.#config.keyClose) return
+        if ((this.#config.keys.includes(e.key) || this.#config.keys.includes(e.code)) && this.isOpened) {
+            e.preventDefault();
+            this.close();
+            return;
+        }
+    }
+
+    #mouseDown(e) {
+        if (document.querySelector(this.#config.modalContainer).contains(e.target) || this.#config.closeByMethod) return;
+        this.#overlayChecker = true;
+    }
+
+    #mouseUp(e) {
+        if (this.#overlayChecker && !document.querySelector(this.#config.modalContainer).contains(e.target) && !this.#config.closeByMethod) {
+            e.preventDefault();
+            !this.#overlayChecker;
+            this.close();
+            return;
+        }
+        this.#overlayChecker = false;
+    }
+
+    #windowResize(e) {
+        this.isOverflow = this.#checkOverflow()
     }
 
     #setStandardStyles() {
         let selectors = {
-            modal: this.config.modal,
-            overlay: this.config.overlay,
-            open: this.config.opener,
-            close: this.config.closer,
-            activeClass: this.config.activeClass
+            modal: this.#config.modal,
+            overlay: this.#config.overlay,
+            open: this.#config.opener,
+            close: this.#config.closer,
+            activeClass: this.#config.activeClass,
+            modalContainer: this.#config.modalContainer
         }
-        if (this.config.standardStyles === true) {
+        if (this.#config.standardStyles === true) {
             for (let key in selectors) {
                 const el = document.querySelector(selectors[key])
                 if (el) {
@@ -115,8 +199,8 @@ export default class Modaling {
                 }
                 
             }
-        } else if (Array.isArray(this.config.standardStyles)) {
-            this.config.standardStyles.forEach(key => {
+        } else if (Array.isArray(this.#config.standardStyles)) {
+            this.#config.standardStyles.forEach(key => {
                 const el = document.querySelector(selectors[key])
                 if (el) {
                     console.log(this.standardStyles[key]);
@@ -128,57 +212,7 @@ export default class Modaling {
         }
     }
 
-    on(listener, callback) {
-        if (!callback || typeof callback !== 'function') return
-        if (listener === 'beforedestroy') {this.beforedestroy = callback; this.hasEventListeners = true}
-        if (listener === 'afterdestroy') {this.afterdestroy = callback; this.hasEventListeners = true}
-        if (listener === 'openstart') {this.openstart = callback; this.hasEventListeners = true}
-        if (listener === 'openend') {this.openend = callback; this.hasEventListeners = true}
-        if (listener === 'closestart') {this.closestart = callback; this.hasEventListeners = true}
-        if (listener === 'closeend') {this.closeend = callback; this.hasEventListeners = true}
-    }
-
-    #documentClick(e) {
-        const clickedLink = e.target.closest(this.config.opener);
-         
-
-        if (clickedLink) { 
-            e.preventDefault();
-            this.open();
-            return;
-        }
-
-        if (e.target.closest(this.config.closer)) {
-            this.close();
-            return;
-        }
-    }
-
-    #keyDown(e) {
-        if (!Array.isArray(this.config.keys)) return
-        if ((this.config.keys.includes(e.key) || this.config.keys.includes(e.code)) && this.isOpened) {
-            e.preventDefault();
-            this.close();
-            return;
-        }
-    }
-
-    #mouseDown(e) {
-        if (e.target !== document.querySelector(this.config.overlay)) return;
-        this.#overlayChecker = true;
-    }
-
-    #mouseUp(e) {
-        if (this.#overlayChecker && e.target === document.querySelector(this.config.overlay)) {
-            e.preventDefault();
-            !this.#overlayChecker;
-            this.close();
-            return;
-        }
-        this.#overlayChecker = false;
-    }
-
-    #eventsFeeler(){
+    #eventsFeeler() {
 
         document.addEventListener("click", (e) => this.#documentClick(e));
 
@@ -188,34 +222,69 @@ export default class Modaling {
         
         document.addEventListener('mouseup', (e) => this.#mouseUp(e));
 
+        window.addEventListener('resize', (e) => this.#windowResize(e))
+
     }
 
-    destroy() {
-        if (this.beforedestroy) this.beforedestroy()
-
-        document.removeEventListener("click", (e) => this.#documentClick(e));
-
-        window.removeEventListener("keydown", (e) => this.#keyDown(e));
-
-        document.removeEventListener('mousedown', (e) => this.#mouseDown(e));
+    #bodyScrollControl() {
+        if (!this.#config.scrollLocking) {
+            return
+        }
+        if (this.#config.enablePadding) {
+            let marginSize = window.innerWidth - document.body.clientWidth;
+            if (marginSize) {
+                document.body.style.paddingRight = marginSize + "px";
+            } 
+        }
+        if (this.isOpened === true) {
+            if (this.#config.scrollLockClass) document.body.classList.add(this.#config.scrollLockClass);
+            else {
+                document.body.style.overflow = 'hidden';
+            }
+            return;
+        }
+        document.body.style.paddingRight = "";
+        document.body.classList.remove(this.#config.scrollLockClass);
         
-        document.removeEventListener('mouseup', (e) => this.#mouseUp(e));
-
-        if (this.afterdestroy) this.afterdestroy()
     }
 
-    open(){
+    #checkOverflow() {
+        if (!document.querySelector(this.#config.modalContainer)) return
+        const modalHeight = document.querySelector(this.#config.modalContainer).clientHeight;
+        const clientHeight = window.innerHeight;
+
+        return modalHeight > clientHeight
+    }
+
+    // Listeners
+
+    on(listener, callback) {
+        if (!callback || typeof callback !== 'function') return
+        if (listener === 'beforedestroy') {this.#beforedestroy = callback; this.hasEventListeners = true}
+        if (listener === 'afterdestroy') {this.#afterdestroy = callback; this.hasEventListeners = true}
+        if (listener === 'openstart') {this.#openstart = callback; this.hasEventListeners = true}
+        if (listener === 'openend') {this.#openend = callback; this.hasEventListeners = true}
+        if (listener === 'closestart') {this.#closestart = callback; this.hasEventListeners = true}
+        if (listener === 'closeend') {this.#closeend = callback; this.hasEventListeners = true}
+    }
+
+    set(prop, value) {
+        this.#config[prop] = value
+    }
+
+    // Methods
+
+    open() {
         if (this.isOpened) {
             return;
         }
+        if (typeof this.#config?.openCallback?.before === 'function') this.#config.openCallback.before()
+        if (typeof this.#openstart === 'function') this.#openstart()
+        
 
-        if (this.config.openCallback?.before && typeof this.config.openCallback?.before === 'function') this.config.openCallback.before()
-        if (this.openstart) this.openstart()
+        this.openedPopup = document.querySelector(this.#config.modal);
 
-
-        this.openedPopup = document.querySelector(this.config.modal);
-
-        this.openedPopup.classList.add(this.config.activeClass);
+        this.openedPopup.classList.add(this.#config.activeClass);
         this.openedPopup.setAttribute('aria-hidden', 'false');
         if (this.standardStyles?.activeClass) {
             for (let styleKey in this.standardStyles.activeClass) {
@@ -227,20 +296,18 @@ export default class Modaling {
         this.#bodyScrollControl();
 
 
-        
-        if (this.config.openCallback?.after && typeof this.config.openCallback?.after === 'function') this.config.openCallback.after()
-        if (this.openend) this.openend()
+        if (typeof this.#config?.openCallback?.after === 'function') this.#config.openCallback.after()
+        if (typeof this.#openend === 'function') this.#openend()
     }
 
-    close(){
+    close() {
         if (!this.isOpened) {
             return;
         }
+        if (typeof this.#config?.closeCallback?.before === 'function') this.#config.closeCallback.before()
+        if (typeof this.#closestart === 'function') this.#closestart()
 
-        if (this.config.closeCallback?.before && typeof this.config.closeCallback?.before === 'function') this.config.closeCallback.before()
-        if (this.closestart) this.closestart()
-
-        this.openedPopup.classList.remove(this.config.activeClass);
+        this.openedPopup.classList.remove(this.#config.activeClass);
         this.openedPopup.setAttribute('aria-hidden', 'true');
 
         if (this.standardStyles?.activeClass) {
@@ -256,25 +323,30 @@ export default class Modaling {
         this.isOpened = false;
         this.#bodyScrollControl();
 
-        
-        if (this.config.closeCallback?.after && typeof this.config.closeCallback?.after === 'function') this.config.closeCallback.after()
-        if (this.closeend) this.closeend()
+        if (typeof this.#config?.closeCallback?.after === 'function') this.#config.closeCallback.after()
+        if (typeof this.#closeend === 'function') this.#closeend()
     }
 
-    #bodyScrollControl(){
-        if (!this.config.scrollLocking) {
-            return
-        }
-        let marginSize = window.innerWidth - document.body.clientWidth;
-        if (marginSize) {
-            document.body.style.paddingRight = marginSize + "px";
-        } 
-        if (this.isOpened === true) {
-            document.body.classList.add(this.config.scrollLock);
-            return;
-        }
-        document.body.style.paddingRight = "";
-        document.body.classList.remove(this.config.scrollLock);
-        
+    toggle() {
+        if (this.isOpened) this.close()
+        else this.open()
     }
+
+    init(parentContainer) {
+        const parent = document.querySelector(parentContainer)
+        if (!parent) throw new SyntaxError('Can not find any valid elements with this selector!')
+
+        const modalHTML = `
+        <div class="${this.#config.modal.substring(1)}">
+            <div class="${this.#config.overlay.substring(1)}">
+                <div class="${this.#config.modalContainer.substring(1)}">
+                    <div class="${this.#config.closer.substring(1)}"></div>
+                </div>
+            </div>
+        </div>
+        `
+        parent.innerHTML = modalHTML
+
+        this.#init()
+    }   
 }
