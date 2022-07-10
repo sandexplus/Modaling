@@ -159,8 +159,8 @@ You can send the parameters `initCallback`, `openCallback`, `closeCallback`. Eac
 `.toggle()`
 + Toggle modal visibility
 
-`.init(parentConteiner)`
-+ Initialize instance with sended or standard selectors. Places the modal into the `parentSelector` element 
+`.init(parentContainer)`
++ Initialize instance with sended or standard selectors. Places the modal into the `parentContainer` element 
 
 ### Properties
 
