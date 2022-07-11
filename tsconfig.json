@@ -2,17 +2,25 @@
     "compilerOptions": {
         "target": "ES5",
         "removeComments": true,
-        "outDir": "./",
+        "outDir": "dist",
+        "forceConsistentCasingInFileNames": true,
+        // "strict": true,
+        "skipLibCheck": true,
+        "moduleResolution": "node",
+        "declarationDir": "types",
         "sourceMap": true,
         "declaration": true,
         "noEmitOnError": true,
         "alwaysStrict": true,
         "checkJs": true,
-        "module": "CommonJS",
+        "module": "ESNext",
+        "strictPropertyInitialization": false,
         "downlevelIteration": true,
         // "outFile": "Modaling.js",
         "esModuleInterop": true,
         "strictNullChecks": true,
+        "allowSyntheticDefaultImports": true,
+        "emitDeclarationOnly": true,
         "lib": [
             "es2015",
             "es2017",
@@ -21,6 +29,6 @@
         ]
     },
     "files": [
-        "./ts/Modaling.ts"
+        "src/index.ts"
     ]
 }

@@ -196,7 +196,7 @@ export default class Modaling {
         if (typeof this._config?.initCallback?.after === 'function') this._config.initCallback.after()
     }
 
-    private _documentClick(e) : void {
+    private _documentClick(e : any) : void {
         const clickedLink = e.target.closest(this._config.opener);
         if (!this.isOpened && !this._config.openByMethod) {
             if (clickedLink) { 
@@ -213,7 +213,7 @@ export default class Modaling {
         }
     }
 
-    private _keyDown(e) : void {
+    private _keyDown(e : any) : void {
         if (!Array.isArray(this._config.keys) || !this._config.keyClose) return
         if ((this._config.keys.includes(e.key) || this._config.keys.includes(e.code)) && this.isOpened) {
             e.preventDefault();
@@ -222,12 +222,12 @@ export default class Modaling {
         }
     }
 
-    private _mouseDown(e) : void {
+    private _mouseDown(e : any) : void {
         if (document.querySelector(this._config.modalContainer)!.contains(e.target) || this._config.closeByMethod) return;
         this._overlayChecker = true;
     }
 
-    private _mouseUp(e) : void {
+    private _mouseUp(e : any) : void {
         if (this._overlayChecker && !document.querySelector(this._config.modalContainer)!.contains(e.target) && !this._config.closeByMethod) {
             e.preventDefault();
             !this._overlayChecker;

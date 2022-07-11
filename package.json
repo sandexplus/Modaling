@@ -1,20 +1,34 @@
 {
 	"name": "modaling",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Modaling is a simple and lightweight implementation of pop-ups, written in pure JavaScript and does not contain external dependencies",
-	"main": "Modaling.js",
+	"main": "dist/cjs/index.js",
+	"module": "dist/esm/index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\""
+		"rollup": "rollup -c"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/sandexplus/Modaling.git"
+		"url": "https://github.com/sandexplus/modaling.git"
 	},
 	"keywords": [
 		"modal",
 		"popup",
 		"javascript"
 	],
+	"files": [
+		"dist"
+	],
+	"types": "dist/index.d.ts",
 	"author": "sandex",
-	"license": "ISC"
+	"license": "ISC",
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^22.0.1",
+		"@rollup/plugin-node-resolve": "^13.3.0",
+		"@rollup/plugin-typescript": "^8.3.3",
+		"rollup": "^2.76.0",
+		"rollup-plugin-dts": "^4.2.2",
+		"tslib": "^2.4.0",
+		"typescript": "^4.7.4"
+	}
 }
