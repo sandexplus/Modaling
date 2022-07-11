@@ -17,10 +17,10 @@ yarn add modaling
 Add this HTML on your page
 
 ```html
-<div class="js-modal"> // whole modal container
-    <div class="js-overlay"> // overlay
-        <div class="modal-container"> // modal content
-            <button class="js-close"></button> // close button
+<div class="js-modal"> <!-- whole modal container -->
+    <div class="js-overlay"> <!-- overlay --> 
+        <div class="modal-container"> <!-- modal content --> 
+            <button class="js-close"></button> <!-- close button -->/
         </div>
     </div>
 </div>
@@ -35,7 +35,7 @@ And this HTML for open button
 Next import Modaling into your JS file and initialize it
 
 ```javascript
-import Modaling from './Modaling.js'
+import Modaling from "modaling";
 const modal = new Modaling({
     standardStyles: true // send this parameter for auto setting styles
 })
