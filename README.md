@@ -176,6 +176,9 @@ You can send the parameters `initCallback`, `openCallback`, `closeCallback`. Eac
 `isOverflow`
 + returns: `boolean`
 
+`isInitialized`
++ returns: `boolean`
+
 ### Event Listeners
 
 You don't have to send a callback as a parameter. You can listen to this event via the `.on()` method. There are many more event listeners than when passed as parameters

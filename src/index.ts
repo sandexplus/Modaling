@@ -43,7 +43,8 @@ export default class Modaling {
     public hasEventListeners : boolean
     public openedPopup : HTMLElement | boolean
     public isOverflow : boolean
-    public standardStyles : {
+    public isInitialized : boolean
+    private _styles : {
         modal: {},
         modalContainer: {},
         overlay: {},
@@ -96,9 +97,10 @@ export default class Modaling {
         }
 
         this._config = Object.assign(this._defaultConfig, params)
-        if (!document.querySelector<HTMLElement>(this._config.modal!)) return
+        
+        if (!document.querySelector<HTMLElement>(this._config.modal!) && this._config.autoInit) return
 
-        this.standardStyles = {
+        this._styles = {
             modal: {
                 position: 'fixed',
                 top: 0,
@@ -111,7 +113,15 @@ export default class Modaling {
             },
             modalContainer: {
                 maxHeight: '100vh',
-                overflowY: 'auto'
+                overflowY: 'auto',
+                position: 'absolute',
+                width: '500px',
+                height: '500px',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: '#ffffff',
+                borderRadius: '10px',
             },
             overlay: {
                 width: '100%',
@@ -129,7 +139,8 @@ export default class Modaling {
                 justifyContent: 'center',
                 alignItems: 'center',
                 cursor: 'pointer',
-                border: '1px solid _000'
+                border: '1px solid #000000',
+                backgroundColor: '#b9b9b9'
             },
             activeClass: {
                 opacity: 1,
@@ -143,20 +154,23 @@ export default class Modaling {
                 justifyContent: 'center',
                 alignItems: 'center',
                 cursor: 'pointer',
-                border: '1px solid _000'
+                border: '1px solid #000000'
             }
         }
 
+        this.isInitialized = false
         this._openstart = null
         this._openend = null
         this._closestart = null
         this._closeend = null
         this._resize = null
 
-        if (this._config.autoInit) this._init()
+        
+        if (this._config.autoInit === true && !this.isInitialized) this._init()
     }
 
     private _init() : void {
+        
         if (typeof this._config?.initCallback?.before === 'function') this._config.initCallback.before()
 
         for (let prop in this._config) {
@@ -177,7 +191,6 @@ export default class Modaling {
         this.isOverflow = this._checkOverflow()
 
         this._overlayChecker = false;
-
         if (this._config.standardStyles) this._setStandardStyles()
         this._eventsFeeler();
 
@@ -193,6 +206,7 @@ export default class Modaling {
         }
 
 
+        this.isInitialized = true
         if (typeof this._config?.initCallback?.after === 'function') this._config.initCallback.after()
     }
 
@@ -243,6 +257,7 @@ export default class Modaling {
     }
 
     private _setStandardStyles() : void {
+        
         let selectors = {
             modal: this._config.modal,
             overlay: this._config.overlay,
@@ -252,22 +267,31 @@ export default class Modaling {
             modalContainer: this._config.modalContainer
         }
         if (this._config.standardStyles === true) {
+            console.log('styles true');
+            
             for (let key in selectors) {
                 const el = document.querySelector(selectors[key])
-                if (el) {
-                    for (let styleKey in this.standardStyles[key]) {
-                        el.style[styleKey] = this.standardStyles[key][styleKey]
+                if (el) {                    
+                    for (let styleKey in this._styles[key]) {
+                        console.log(styleKey);
+                        console.log(this._styles[key][styleKey]);
+                        
+                        
+                        el.style[styleKey] = this._styles[key][styleKey]
                     }
                 }
                 
             }
         } else if (Array.isArray(this._config.standardStyles)) {
+            console.log('array styles true');
+
             this._config.standardStyles.forEach(key => {
                 const el = document.querySelector(selectors[key])
+                console.log(this._styles);
+                
                 if (el) {
-                    console.log(this.standardStyles[key]);
-                    for (let styleKey in this.standardStyles[key]) {
-                        el.style[styleKey] = this.standardStyles[key][styleKey]
+                    for (let styleKey in this._styles[key]) {
+                        el.style[styleKey] = this._styles[key][styleKey]
                     }
                 }
             })
@@ -356,9 +380,9 @@ export default class Modaling {
 
         this.openedPopup.classList.add(this._config.activeClass!);
         this.openedPopup.setAttribute('aria-hidden', 'false');
-        if (this.standardStyles?.activeClass) {
-            for (let styleKey in this.standardStyles.activeClass) {
-                this.openedPopup.style[styleKey] = this.standardStyles.activeClass[styleKey]
+        if (this._styles?.activeClass) {
+            for (let styleKey in this._styles.activeClass) {
+                this.openedPopup.style[styleKey] = this._styles.activeClass[styleKey]
             }
         }
 
@@ -383,9 +407,9 @@ export default class Modaling {
         this.openedPopup.classList.remove(this._config.activeClass!);
         this.openedPopup.setAttribute('aria-hidden', 'true');
 
-        if (this.standardStyles?.activeClass) {
-            for (let styleKey in this.standardStyles.activeClass) {
-                if (+this.standardStyles.activeClass[styleKey]) {
+        if (this._styles?.activeClass) {
+            for (let styleKey in this._styles.activeClass) {
+                if (+this._styles.activeClass[styleKey]) {
                     this.openedPopup.style[styleKey] = 0
                 } else {
                     this.openedPopup.style[styleKey] = 'none'
@@ -405,21 +429,23 @@ export default class Modaling {
         else this.open()
     }
 
-    public init(parentContainer) : void {
+    public init(parentContainer : string) : void {
+        if (this.isInitialized) return
         const parent = document.querySelector(parentContainer)
         if (!parent) throw new SyntaxError('Can not find any valid elements with this selector!')
 
         const modalHTML = `
         <div class="${this._config.modal!.substring(1)}">
             <div class="${this._config.overlay!.substring(1)}">
-                <div class="${this._config.modalContainer.substring(1)}">
+                <div class="${this._config.modalContainer!.substring(1)}">
                     <div class="${this._config.closer!.substring(1)}"></div>
                 </div>
             </div>
         </div>
         `
         parent.innerHTML = modalHTML
-
+        console.log(parent);
+        
         this._init()
     }   
 }
