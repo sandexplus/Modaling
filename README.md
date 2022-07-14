@@ -49,6 +49,10 @@ All the parameters are includes by default but you can change some of them just 
 
 #### Options
 
+`debug` **Boolean**
++ default: `true`
++ rules: Enables or disables warnings in the dev tools console
+
 `standardStyles` **Boolean || [ String ]** 
 + default: `false`
 + rules: If it's true standard styles for all elements will be added by default. It's a good way if you want to build the modal faster

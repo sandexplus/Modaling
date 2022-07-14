@@ -9,6 +9,7 @@ type conf = {
     autoInit?: boolean,
     autoOpen?: boolean | number,
     autoClose?: boolean | number,
+    debug?: boolean,
 
     //elems
     modal?: string,
@@ -76,6 +77,7 @@ export default class Modaling {
             autoInit: true,
             autoOpen: false,
             autoClose: false,
+            debug: true,
 
             //elems
             modal: '.js-modal',
@@ -98,7 +100,10 @@ export default class Modaling {
 
         this._config = Object.assign(this._defaultConfig, params)
         
-        if (!document.querySelector<HTMLElement>(this._config.modal!) && this._config.autoInit) return
+        if (!document.querySelector<HTMLElement>(this._config.modal!) && this._config.autoInit) {
+            this._throwWarn(`Can not initialize instance automatically because can not find any elements with '${this._config.modal}' selector`)
+            return;
+        }
 
         this._styles = {
             modal: {
@@ -165,21 +170,25 @@ export default class Modaling {
         this._closeend = null
         this._resize = null
 
+
         
         if (this._config.autoInit === true && !this.isInitialized) this._init()
     }
 
+    private _throwWarn(message : string) : void {
+        if (!this._config.debug || !message) return
+
+        console.warn(message);
+    }
+
     private _init() : void {
-        
         if (typeof this._config?.initCallback?.before === 'function') this._config.initCallback.before()
 
         for (let prop in this._config) {
-            // if (!this._config[prop]) {
-            //     throw new Error(`Can not get ${prop} value. Check out your commit`);
-            // }
             if (prop === 'modal' || prop === 'opener' || prop === 'closer' || prop === 'overlay' || prop === 'modalContainer') {
                 if (!document.querySelector(this._config[prop]!)) {
-                    throw new Error(`There is no element with '${this._config[prop]}' selector`);
+                    this._throwWarn(`There is no element with '${this._config[prop]}' selector`)
+                    return
                 }
             }
         }
@@ -228,7 +237,15 @@ export default class Modaling {
     }
 
     private _keyDown(e : any) : void {
-        if (!Array.isArray(this._config.keys) || !this._config.keyClose) return
+        if (!this._config.keyClose) {
+            return;
+        }
+
+        if (!Array.isArray(this._config.keys)) {
+            this._throwWarn("The 'keys' parameter is not valid array of keys");
+            return;
+        }
+
         if ((this._config.keys.includes(e.key) || this._config.keys.includes(e.code)) && this.isOpened) {
             e.preventDefault();
             this.close();
@@ -251,7 +268,7 @@ export default class Modaling {
         this._overlayChecker = false;
     }
 
-    private _windowResize(e) : void {
+    private _windowResize(e : any) : void {
         if (typeof this._resize === 'function') this._resize()
         this.isOverflow = this._checkOverflow()
     }
@@ -266,33 +283,27 @@ export default class Modaling {
             activeClass: this._config.activeClass,
             modalContainer: this._config.modalContainer
         }
-        if (this._config.standardStyles === true) {
-            console.log('styles true');
-            
+        if (this._config.standardStyles === true) {            
             for (let key in selectors) {
                 const el = document.querySelector(selectors[key])
                 if (el) {                    
                     for (let styleKey in this._styles[key]) {
-                        console.log(styleKey);
-                        console.log(this._styles[key][styleKey]);
-                        
-                        
                         el.style[styleKey] = this._styles[key][styleKey]
                     }
+                } else {
+                    this._throwWarn(`Can not find any element with '${selectors[key]}' selector`)
                 }
                 
             }
         } else if (Array.isArray(this._config.standardStyles)) {
-            console.log('array styles true');
-
             this._config.standardStyles.forEach(key => {
                 const el = document.querySelector(selectors[key])
-                console.log(this._styles);
-                
                 if (el) {
                     for (let styleKey in this._styles[key]) {
                         el.style[styleKey] = this._styles[key][styleKey]
                     }
+                } else {
+                    this._throwWarn(`Can not find any element with '${selectors[key]}' selector`)
                 }
             })
         }
@@ -322,7 +333,7 @@ export default class Modaling {
                 document.body.style.paddingRight = marginSize + "px";
             } 
         }
-        if (this.isOpened === true) {
+        if (this.isOpened) {
             if (this._config.scrollLockClass) document.body.classList.add(this._config.scrollLockClass);
             else {
                 document.body.style.overflow = 'hidden';
@@ -336,8 +347,8 @@ export default class Modaling {
 
     private _checkOverflow() : boolean {
         if (!document.querySelector(this._config.modalContainer)) {
-            throw new Error(`Can not find any element with '${this._config.modalContainer}' selector.`);
-            
+            this._throwWarn(`Can not find any element with '${this._config.modalContainer}' selector.`);
+            return false;
         }
         const modalHeight = document.querySelector(this._config.modalContainer)!.clientHeight;
         const clientHeight = window.innerHeight;
@@ -346,8 +357,10 @@ export default class Modaling {
     } 
 
     public on(listener : string, callback : Function) : void {
-        if (!callback || typeof callback !== 'function') throw new Error("Please, send a valid callback");
-        
+        if (!callback || typeof callback !== 'function') {
+            this._throwWarn("Please, send a valid callback");
+            return;
+        }
         // if (listener === 'beforedestroy') {this._beforedestroy = callback; this.hasEventListeners = true}
         // if (listener === 'afterdestroy') {this._afterdestroy = callback; this.hasEventListeners = true}
         if (listener === 'openstart') {this._openstart = callback; this.hasEventListeners = true}
@@ -359,13 +372,14 @@ export default class Modaling {
 
     public set(prop : string, value : any) : void {
         if (!this._config[prop]) {
-            throw new Error(`Parameter with '${prop}' property doesn't exist`);
+            this._throwWarn(`Parameter with '${prop}' property doesn't exist`);
+            return;
         }
         if (typeof this._config[prop] === typeof value) {
             this._config[prop] = value;
             return;
         }
-        throw new Error('Please, commit valid value')
+        this._throwWarn('Please, commit valid value')
     }
 
     public open() : void {
@@ -430,9 +444,14 @@ export default class Modaling {
     }
 
     public init(parentContainer : string) : void {
-        if (this.isInitialized) return
+        if (this.isInitialized) {
+            this._throwWarn('The instance already has been initialized')
+        }
         const parent = document.querySelector(parentContainer)
-        if (!parent) throw new SyntaxError('Can not find any valid elements with this selector!')
+        if (!parent) {
+            this._throwWarn('Can not find any valid elements with this selector!');
+            return;
+        }
 
         const modalHTML = `
         <div class="${this._config.modal!.substring(1)}">
@@ -444,7 +463,6 @@ export default class Modaling {
         </div>
         `
         parent.innerHTML = modalHTML
-        console.log(parent);
         
         this._init()
     }   
